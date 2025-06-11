@@ -12,17 +12,37 @@ export function registerSearchTools(server: McpServer, props: Props) {
     "Search for pages and databases",
     {
       query: z.string().optional().describe("The text to search for"),
-      filter: z.any().optional().describe("Filter object for the search"),
-      sort: z.any().optional().describe("Sort object for the search"),
+      filter: z.union([z.string(), z.any()]).optional().describe("Filter object for the search - can be JSON string or object"),
+      sort: z.union([z.string(), z.any()]).optional().describe("Sort object for the search - can be JSON string or object"),
       start_cursor: z.string().optional().describe("Cursor for pagination"),
       page_size: z.number().optional().default(100).describe("Number of items to return (max 100)"),
     },
     async ({ query, filter, sort, start_cursor, page_size }) => {
       try {
+        // Parse filter if it's a string
+        let parsedFilter = filter;
+        if (typeof filter === 'string') {
+          try {
+            parsedFilter = JSON.parse(filter);
+          } catch (e) {
+            throw new Error(`Invalid JSON in filter parameter: ${(e as Error).message}`);
+          }
+        }
+
+        // Parse sort if it's a string
+        let parsedSort = sort;
+        if (typeof sort === 'string') {
+          try {
+            parsedSort = JSON.parse(sort);
+          } catch (e) {
+            throw new Error(`Invalid JSON in sort parameter: ${(e as Error).message}`);
+          }
+        }
+
         const body: any = {};
         if (query) body.query = query;
-        if (filter) body.filter = filter;
-        if (sort) body.sort = sort;
+        if (parsedFilter) body.filter = parsedFilter;
+        if (parsedSort) body.sort = parsedSort;
         if (start_cursor) body.start_cursor = start_cursor;
         if (page_size) body.page_size = page_size;
 
@@ -159,70 +179,5 @@ export function registerSearchTools(server: McpServer, props: Props) {
     }
   );
 
-  // Create comment
-  server.tool(
-    "create_comment",
-    "Create a comment on a page or discussion",
-    {
-      parent_page_id: z.string().optional().describe("ID of the page to comment on"),
-      discussion_id: z.string().optional().describe("ID of the discussion to comment on"),
-      rich_text: z.array(z.any()).describe("Rich text content of the comment"),
-    },
-    async ({ parent_page_id, discussion_id, rich_text }) => {
-      try {
-        const body: any = {
-          rich_text,
-        };
 
-        if (parent_page_id) {
-          body.parent = {
-            type: "page_id",
-            page_id: parent_page_id,
-          };
-        } else if (discussion_id) {
-          body.parent = {
-            type: "discussion_id",
-            discussion_id,
-          };
-        } else {
-          throw new Error("Either parent_page_id or discussion_id must be provided");
-        }
-
-        const response = await fetch("https://api.notion.com/v1/comments", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${props.accessToken}`,
-            "Notion-Version": "2022-06-28",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Failed to create comment: ${response.status} ${errorText}`);
-        }
-
-        const comment = await response.json();
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(comment, null, 2),
-            },
-          ],
-        };
-      } catch (error) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Error creating comment: ${(error as Error).message}`,
-            },
-          ],
-          isError: true,
-        };
-      }
-    }
-  );
 } 

@@ -154,10 +154,20 @@ export function registerBlockTools(server: McpServer, props: Props) {
     "Update a block's content",
     {
       block_id: z.string().describe("The ID of the block to update"),
-      block_data: z.any().describe("The updated block data"),
+      block_data: z.union([z.string(), z.any()]).describe("The updated block data - can be JSON string or object"),
     },
     async ({ block_id, block_data }) => {
       try {
+        // Parse block_data if it's a string
+        let parsedBlockData = block_data;
+        if (typeof block_data === 'string') {
+          try {
+            parsedBlockData = JSON.parse(block_data);
+          } catch (e) {
+            throw new Error(`Invalid JSON in block_data parameter: ${(e as Error).message}`);
+          }
+        }
+
         const response = await fetch(`https://api.notion.com/v1/blocks/${block_id}`, {
           method: "PATCH",
           headers: {
@@ -165,7 +175,7 @@ export function registerBlockTools(server: McpServer, props: Props) {
             "Notion-Version": "2022-06-28",
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(block_data),
+          body: JSON.stringify(parsedBlockData),
         });
 
         if (!response.ok) {

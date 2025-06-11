@@ -143,7 +143,6 @@ Claude Desktop configuration:
 - **`search`**: Search across workspace content
 - **`get_page_property`**: Retrieve specific page properties
 - **`get_comment`**: Retrieve comments
-- **`create_comment`**: Create new comments
 
 ## Key Features
 

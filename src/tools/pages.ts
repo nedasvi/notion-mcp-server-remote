@@ -268,13 +268,23 @@ export function registerPageTools(server: McpServer, props: Props) {
       title: z.string().describe("The title of the new page"),
       parent_page_id: z.string().optional().describe("ID of the parent page (optional)"),
       parent_database_id: z.string().optional().describe("ID of the parent database (optional)"),
-      properties: z.any().optional().describe("Page properties (for database pages)"),
+      properties: z.union([z.string(), z.any()]).optional().describe("Page properties (for database pages) - can be JSON string or object"),
       content: z.string().optional().describe("Initial content for the page"),
     },
     async ({ title, parent_page_id, parent_database_id, properties, content }) => {
       try {
+        // Parse properties if it's a string
+        let parsedProperties = properties;
+        if (typeof properties === 'string') {
+          try {
+            parsedProperties = JSON.parse(properties);
+          } catch (e) {
+            throw new Error(`Invalid JSON in properties parameter: ${(e as Error).message}`);
+          }
+        }
+
         const pageData: any = {
-          properties: properties || {
+          properties: parsedProperties || {
             title: {
               title: [
                 {
@@ -400,13 +410,23 @@ export function registerPageTools(server: McpServer, props: Props) {
     "Update a page's properties in Notion (alternative name for OpenAPI compatibility)",
     {
       page_id: z.string().describe("The ID of the page to update"),
-      properties: z.any().optional().describe("Updated page properties"),
+      properties: z.union([z.string(), z.any()]).optional().describe("Updated page properties - can be JSON string or object"),
       archived: z.boolean().optional().describe("Whether to archive the page"),
     },
     async ({ page_id, properties, archived }) => {
       try {
+        // Parse properties if it's a string
+        let parsedProperties = properties;
+        if (typeof properties === 'string') {
+          try {
+            parsedProperties = JSON.parse(properties);
+          } catch (e) {
+            throw new Error(`Invalid JSON in properties parameter: ${(e as Error).message}`);
+          }
+        }
+
         const updateData: any = {};
-        if (properties) updateData.properties = properties;
+        if (parsedProperties) updateData.properties = parsedProperties;
         if (archived !== undefined) updateData.archived = archived;
 
         const response = await fetch(`https://api.notion.com/v1/pages/${page_id}`, {
