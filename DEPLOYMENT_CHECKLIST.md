@@ -111,6 +111,25 @@ npm run deploy
 - Test page creation/retrieval tools
 - Verify Notion API calls work
 
+### 4. Configure as Remote MCP Server
+To add this as a remote MCP server in your MCP client configuration:
+
+**MCP Server URL**: `https://your-worker-domain.workers.dev/sse`
+
+Claude Desktop configuration:
+```json
+{
+  "mcpServers": {
+    "notion-remote": {
+      "command": "mcp-client",
+      "args": ["--transport", "sse", "https://your-worker-domain.workers.dev/sse"]
+    }
+  }
+}
+```
+
+**Note**: Users must first complete OAuth authorization by visiting `https://your-worker-domain.workers.dev/authorize` before the MCP server will function.
+
 ## 🐛 Common Issues & Solutions
 
 ### Issue: "OAuth client not found"

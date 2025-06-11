@@ -4,6 +4,8 @@ A Cloudflare Workers-based MCP (Model Context Protocol) server that provides com
 
 All credits goes to https://github.com/vakharwalad23/google-mcp-remote and since it was taken as an example and Claude 4 Sonnet was prompted to make Remote MCP server for Notion based on it
 
+> ⚠️ **SECURITY WARNING**: Do not use someone else's deployed instance of this server as it requires access to your Slack workspace and personal data. Always deploy your own instance to maintain control over your data and API access.
+
 ## Overview
 
 This project provides:
