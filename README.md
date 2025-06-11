@@ -93,6 +93,23 @@ npx wrangler kv:namespace create "OAUTH_KV"
 npm run deploy
 ```
 
+## Configure as Remote MCP Server
+To add this as a remote MCP server in your MCP client configuration:
+
+**MCP Server URL**: `https://your-worker-domain.workers.dev/sse`
+
+Claude Desktop configuration:
+```json
+{
+  "mcpServers": {
+    "notion-remote": {
+      "command": "mcp-client",
+      "args": ["--transport", "sse", "https://your-worker-domain.workers.dev/sse"]
+    }
+  }
+}
+```
+
 ## Available Tools
 
 ### Page Tools
